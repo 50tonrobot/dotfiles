@@ -38,18 +38,18 @@ function install_kubectl() {
 }
 
 function install_stern() {
-  if [ -z ${GOPATH+x} ] || [ "$GOPATH" == "" ]; #if missing username
+  if [ -z ${GOPATH+x} ] || [ "$GOPATH" == "" ];
     then
       GOPATH=/opt/go
   fi
-  go get -u github.com/kardianos/govendor \
-  ln -s $GOPATH/bin/govendor /usr/sbin/govendor \
-  mkdir -p $GOPATH/src/github.com/wercker \
-  cd $GOPATH/src/github.com/wercker \
-  git clone https://github.com/wercker/stern.git && cd stern \
-  govendor sync \
-  go install \
-  ln -s $GOPATH/bin/stern /usr/sbin/stern \
+  go get -u github.com/kardianos/govendor
+  ln -s $GOPATH/bin/govendor /usr/sbin/govendor
+  mkdir -p $GOPATH/src/github.com/wercker
+  cd $GOPATH/src/github.com/wercker
+  git clone https://github.com/wercker/stern.git && cd stern
+  govendor sync
+  go install
+  ln -s $GOPATH/bin/stern /usr/sbin/stern
 }
 
 function check_installed() {
