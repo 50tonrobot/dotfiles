@@ -1,0 +1,149 @@
+#!/bin/bash
+
+# list of things to install
+# wget
+# curl
+# vim
+# lsb-core
+# apt-utils
+# gnupg
+# gcloud
+# bash-completion
+# tmux
+# jq
+# ssh
+# cfssl
+# kubectl
+
+function install_gcloud() {
+  export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+  echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+  curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+  apt-get update -y && apt-get install google-cloud-sdk -y
+}
+
+function install_cfssl() {
+  wget -q --show-progress --https-only --timestamping \
+  https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 \
+  https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+  chmod +x cfssl_linux-amd64 cfssljson_linux-amd64
+  mv cfssl_linux-amd64 /usr/local/bin/cfssl
+  mv cfssljson_linux-amd64 /usr/local/bin/cfssljson
+}
+
+function install_kubectl() {
+  wget https://storage.googleapis.com/kubernetes-release/release/v1.12.0/bin/linux/amd64/kubectl && \
+  chmod +x kubectl && \
+  mv kubectl /usr/local/bin/
+}
+
+function install_stern() {
+  if [ -z ${GOPATH+x} ] || [ "$GOPATH" == "" ]; #if missing username
+    then
+      GOPATH=/opt/go
+  fi
+  go get -u github.com/kardianos/govendor \
+  ln -s $GOPATH/bin/govendor /usr/sbin/govendor \
+  mkdir -p $GOPATH/src/github.com/wercker \
+  cd $GOPATH/src/github.com/wercker \
+  git clone https://github.com/wercker/stern.git && cd stern \
+  govendor sync \
+  go install \
+  ln -s $GOPATH/bin/stern /usr/sbin/stern \
+}
+
+function check_installed() {
+  which $app > /dev/null 2>&1
+  test1=$?
+  dpkg -S $app > /dev/null 2>&1
+  test2=$?
+
+  if [[ "$test1" -eq "0" || "$test2" -eq "0" ]];
+    then
+      echo "$app already installed"
+    else
+      if [ "$type" == "apt" ];
+        then
+          apt install $app -y
+        else
+          install_$app
+      fi
+  fi
+}
+
+function add_my_aliases() {
+  echo "alias apiservererrors=\"stern -n kube-system apiserver | grep -E ' [3-9][0-9][0-9] '\"" >> /root/.bashrc
+  echo "alias yaml2json=\"python -c 'import json, sys, yaml ; y=yaml.safe_load(sys.stdin.read()) ; json.dump(y, sys.stdout)'\"" >> /root/.bashrc
+  echo "alias k=kubectl" >> /root/.bashrc
+  echo "source /etc/profile.d/bash_completion.sh" >> /root/.bashrc
+  echo "source <(kubectl completion bash)" >> /root/.bashrc
+  echo "complete -o default -F __start_kubectl k" >> /root/.bashrc
+}
+
+function install_as_necessary() {
+  #wget
+  app=wget
+  type=apt
+  check_installed
+  #curl
+  app=curl
+  type=apt
+  check_installed
+  #vim
+  app=vim
+  type=apt
+  check_installed
+  #lsb-core
+  app=lsb-core
+  type=apt
+  check_installed
+  #apt-utils
+  app=apt-utils
+  type=apt
+  check_installed
+  #gnupg
+  app=gnupg
+  type=apt
+  check_installed
+  #gcloud
+  app=gcloud
+  type=function
+  check_installed
+  #bash-completion
+  app=bash-completion
+  type=apt
+  check_installed
+  #tmux
+  app=tmux
+  type=apt
+  check_installed
+  #jq
+  app=jq
+  type=apt
+  check_installed
+  #go
+  app=go
+  type=apt
+  check_installed
+  #ssh
+  app=ssh
+  type=apt
+  check_installed
+  #cfssl
+  app=cfssl
+  type=function
+  check_installed
+  #kubectl
+  app=kubectl
+  type=function
+  check_installed
+}
+
+#install my useful tools and dependancies
+install_as_necessary
+
+#just to verify that all is installed
+install_as_necessary
+
+add_my_aliases
+
