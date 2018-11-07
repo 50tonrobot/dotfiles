@@ -125,10 +125,6 @@ function install_as_necessary() {
   app=go
   type=apt
   check_installed
-  #stern
-  app=stern
-  type=function
-  check_installed
   #ssh
   app=ssh
   type=apt
@@ -145,6 +141,7 @@ function install_as_necessary() {
 
 #install my useful tools and dependancies
 install_as_necessary
+install_stern
 
 #just to verify that all is installed
 install_as_necessary
