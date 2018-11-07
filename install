@@ -125,6 +125,10 @@ function install_as_necessary() {
   app=go
   type=apt
   check_installed
+  #stern
+  app=stern
+  type=function
+  check_installed
   #ssh
   app=ssh
   type=apt
@@ -146,4 +150,3 @@ install_as_necessary
 install_as_necessary
 
 add_my_aliases
-
